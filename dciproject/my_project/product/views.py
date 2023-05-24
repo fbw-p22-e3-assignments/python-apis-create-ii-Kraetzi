@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from .exceptions import NoNameProductException, NoProductException, MissingContentException, MissingDeletableProductException
 # Create your views here.
 
 from .models import Product #new
@@ -17,6 +17,12 @@ class ProductList(generics.ListAPIView):
     permission_classes = [IsAuthenticated]  
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    def list(self, request, *args, **kwargs):
+        try:
+            return super().list(request, *args, **kwargs)
+        except Exception:
+            raise NoProductException()
+
 
 class ProductCreate(generics.CreateAPIView):
     # API endpoint that allows creation of a new product
@@ -24,14 +30,39 @@ class ProductCreate(generics.CreateAPIView):
     queryset = Product.objects.all(),
     serializer_class = ProductSerializer
 
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except Exception:
+            raise MissingContentException()
+
+
 class ProductDelete(generics.RetrieveDestroyAPIView):
     # API endpoint that allows a product record to be deleted.
     permission_classes = [IsAuthenticated] 
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except Exception:
+            raise NoNameProductException()
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except Exception as e:
+            raise MissingDeletableProductException()
+
 
 class ProductDetail(generics.RetrieveAPIView):
     # API endpoint that returns a single product by id.
     permission_classes = [IsAuthenticated]
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except Exception:
+            raise NoNameProductException()
